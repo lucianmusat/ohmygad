@@ -10,15 +10,14 @@ from enum import Enum
 from phue import Bridge
 from bs4 import BeautifulSoup
 
-logging.basicConfig(level=logging.INFO)
+FORMAT = '%(asctime)s %(levelname)s %(message)s'
+logging.basicConfig(level=logging.INFO, format=FORMAT)
 locale.setlocale(locale.LC_ALL, 'nl_NL.UTF-8')
 
 ADDRESS = "1221CC:4"
 BRIDGE_IP_ADDRESS = "192.168.50.11"
 LIGHT_NAME = "Glass cabinet light"
-brown_rgb = (128, 128, 128)
-brown_hsv = colorsys.rgb_to_hsv(*brown_rgb)
-brown_hue = int(brown_hsv[0] * 65535)
+PURPLE_HUE = int(65535 * colorsys.rgb_to_hsv(0.5, 0, 0.5)[0])
 
 
 class Bin(Enum):
@@ -32,7 +31,7 @@ color_map = {
     Bin.PLASTIC: 0,  # red
     Bin.PAPER: 46920,  # blue
     Bin.PLANTS: 25500,  # green
-    Bin.REST: brown_hue,  # brown
+    Bin.REST: PURPLE_HUE,  # no color gray for hue lights, so let's pick purple
 }
 
 
@@ -73,14 +72,13 @@ def set_light(bin_type: Bin):
 
 def main():
     next_bins = get_next_bins()
-    today = datetime.datetime.now().date()
-    if not any(bin_type.date() == today for bin_type in next_bins):
-        logging.info("No bins to be picked up today")
+    tomorrow = datetime.datetime.now().date() + datetime.timedelta(days=1)
+    if not any(bin_type.date() == tomorrow for bin_type in next_bins):
+        logging.info("No bins to be picked up tomorrow")
     else:
         for trash_bin in next_bins:
-            print(f"Bin date: {trash_bin.date()}, today: {today}")
-            if trash_bin.date() == today:
-                logging.info(f"Today they are picking up the {next_bins[trash_bin]} bin")
+            if trash_bin.date() == tomorrow:
+                logging.info(f"Tomorrow they are picking up the {next_bins[trash_bin]} bin")
                 set_light(next_bins[trash_bin])
 
 
