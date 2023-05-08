@@ -8,6 +8,7 @@ import schedule
 import colorsys
 from enum import Enum
 from phue import Bridge
+from typing import Dict
 from bs4 import BeautifulSoup
 
 FORMAT = '%(asctime)s %(levelname)s %(message)s'
@@ -35,7 +36,12 @@ color_map = {
 }
 
 
-def get_next_bins():
+def get_next_bins() -> Dict[datetime.datetime, Bin]:
+    """
+    Get the next bins to be picked up. Queries the gad.nl website for the next pickup dates
+    using my address. Then parses the html to find the next dates and bin types.
+    :return: A dictionary with the next dates as keys and the bin types as values
+    """
     next_bins = {}
     url = f"https://inzamelkalender.gad.nl/adres/{ADDRESS}"
     response = requests.get(url)
@@ -54,7 +60,12 @@ def get_next_bins():
     return next_bins
 
 
-def set_light(bin_type: Bin):
+def set_light(bin_type: Bin) -> None:
+    """
+    Set the light to the color of the bin type.
+    :param bin_type: The type of bin to be picked up so
+    that the color of the light matches the color of the bin.
+    """
     bridge = Bridge(BRIDGE_IP_ADDRESS)
     # Need to press the button on the bridge to connect for the first time
     if not os.path.exists('phue.conf'):
