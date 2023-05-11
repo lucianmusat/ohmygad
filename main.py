@@ -22,9 +22,9 @@ PURPLE_HUE = int(65535 * colorsys.rgb_to_hsv(0.5, 0, 0.5)[0])
 
 
 class Bin(Enum):
-    PLASTIC = "plastic",
-    PAPER = "papier",
-    PLANTS = "groenten",
+    PLASTIC = "plastic"
+    PAPER = "papier"
+    PLANTS = "groenten"
     REST = "restafval"
 
 
