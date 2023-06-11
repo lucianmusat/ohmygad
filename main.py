@@ -44,7 +44,11 @@ def get_next_bins() -> Dict[datetime.datetime, Bin]:
     """
     next_bins = {}
     url = f"https://inzamelkalender.gad.nl/adres/{ADDRESS}"
-    response = requests.get(url)
+    try:
+        response = requests.get(url)
+    except Exception as e:
+        logging.error(f"Error while getting data from {url}: {e}")
+        return next_bins
     data = BeautifulSoup(response.text, features="html.parser")
     next_dates = data.body.find('ul', attrs={'class': 'line', 'id': 'ophaaldata'}).text.strip()
     next_dates_list = [s for s in next_dates.splitlines(True) if s.strip("\r\n")]
