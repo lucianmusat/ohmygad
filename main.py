@@ -50,7 +50,11 @@ def get_next_bins() -> Dict[datetime.datetime, Bin]:
         logging.error(f"Error while getting data from {url}: {e}")
         return next_bins
     data = BeautifulSoup(response.text, features="html.parser")
-    next_dates = data.body.find('ul', attrs={'class': 'line', 'id': 'ophaaldata'}).text.strip()
+    next_dates = data.body.find('ul', attrs={'class': 'line', 'id': 'ophaaldata'})
+    if not next_dates:
+        logging.error(f"Could not find next dates in {url}")
+        return next_bins
+    next_dates = next_dates.text.strip()
     next_dates_list = [s for s in next_dates.splitlines(True) if s.strip("\r\n")]
     for index, line in enumerate(next_dates_list):
         try:
