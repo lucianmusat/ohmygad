@@ -1,4 +1,7 @@
 version: "3.9"
 services:
   ohmygad:
-     build: .
+    environment:
+      - ZIP_CODE=${ZIP_CODE}
+      - BRIDGE_IP=${BRIDGE_IP}
+    build: .
