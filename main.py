@@ -2,7 +2,6 @@ import os
 import time
 import locale
 import logging
-import requests
 import datetime
 import schedule
 import colorsys
@@ -11,11 +10,18 @@ from phue import Bridge
 from typing import Dict
 from bs4 import BeautifulSoup
 
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+
 FORMAT = '%(asctime)s %(levelname)s %(message)s'
 logging.basicConfig(level=logging.INFO, format=FORMAT)
 locale.setlocale(locale.LC_ALL, 'nl_NL.UTF-8')
 
-ADDRESS = "1221CC:4"
+ADDRESS = os.environ.get('ZIP_CODE')
 BRIDGE_IP_ADDRESS = "192.168.50.11"
 LIGHT_NAME = "Glass cabinet light"
 PURPLE_HUE = int(65535 * colorsys.rgb_to_hsv(0.5, 0, 0.5)[0])
@@ -36,36 +42,65 @@ color_map = {
 }
 
 
-def get_next_bins() -> Dict[datetime.datetime, Bin]:
+def get_next_bins_headless() -> Dict[datetime.datetime, Bin]:
     """
     Get the next bins to be picked up. Queries the gad.nl website for the next pickup dates
     using my address. Then parses the html to find the next dates and bin types.
     :return: A dictionary with the next dates as keys and the bin types as values
     """
     next_bins = {}
+    assert ADDRESS, "Please set the ZIP_CODE environment variable"
     url = f"https://inzamelkalender.gad.nl/adres/{ADDRESS}"
-    try:
-        response = requests.get(url)
-    except Exception as e:
-        logging.error(f"Error while getting data from {url}: {e}")
-        return next_bins
-    data = BeautifulSoup(response.text, features="html.parser")
-    next_dates = data.body.find('ul', attrs={'class': 'line', 'id': 'ophaaldata'})
-    if not next_dates:
-        logging.error(f"Could not find next dates in {url}")
-        return next_bins
-    next_dates = next_dates.text.strip()
-    next_dates_list = [s for s in next_dates.splitlines(True) if s.strip("\r\n")]
-    for index, line in enumerate(next_dates_list):
-        try:
-            next_date = datetime.datetime.strptime(line.strip(), '%a %d %b')
-            next_date = next_date.replace(year=datetime.datetime.now().year)
-            for bin_type in Bin:
-                if str(bin_type.value) in next_dates_list[index + 1].lower():
-                    next_bins[next_date] = bin_type
-        except ValueError:
-            continue
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.binary_location = "/usr/bin/google-chrome-stable"
+
+    with (webdriver.Chrome(options=chrome_options) as driver):
+        driver.get(url)
+        wait = WebDriverWait(driver, timeout=10)
+        wait.until(EC.presence_of_element_located((By.CLASS_NAME, "list-group-flush")))
+        soup = BeautifulSoup(driver.page_source, features="html.parser")
+        div_element = soup.find('div', class_='list-group list-group-flush')
+        if div_element:
+            for a_tag in div_element.find_all('a', class_='list-group-item'):
+                title_str, date_str = extract_title_and_date(a_tag)
+                if not title_str or not date_str:
+                    continue
+                date_obj = datetime.datetime.strptime(date_str, '%a %d %b'
+                                                      ).replace(year=datetime.datetime.now().year)
+                bin_obj = get_bin_from_title(title_str)
+                if bin_obj:
+                    next_bins[date_obj] = bin_obj
+        else:
+            logging.error(f"Could not find next dates in {url}")
     return next_bins
+
+
+def extract_title_and_date(a_tag: BeautifulSoup) -> (str, str):
+    title = a_tag.find('span', class_='z-title')
+    date = a_tag.find('time', attrs={'datetime': 'afvalstroom.ophaaldatum'})
+    if not title or not date:
+        return None, None
+    date_str = date.text.strip()
+    title_str = title.text.strip()
+    date_str = sanitize_date(date_str)
+    logging.debug(f"Date '{date_str}' - Title '{title_str}'")
+    return title_str, date_str
+
+
+def sanitize_date(date_str: str) -> str:
+    # Another trick from GAD to make the date string unparseable
+    if date_str.endswith("juli"):
+        date_str = date_str.replace("juli", "jul")
+    return date_str
+
+
+def get_bin_from_title(title: str) -> Bin:
+    bin_obj = None
+    for bin_type in Bin:
+        if bin_type.value in title.lower():
+            bin_obj = bin_type
+    return bin_obj
 
 
 def set_light(bin_type: Bin) -> None:
@@ -90,7 +125,7 @@ def set_light(bin_type: Bin) -> None:
 
 
 def main():
-    next_bins = get_next_bins()
+    next_bins = get_next_bins_headless()
     tomorrow = datetime.datetime.now().date() + datetime.timedelta(days=1)
     if not any(bin_type.date() == tomorrow for bin_type in next_bins):
         logging.info("No bins to be picked up tomorrow")
