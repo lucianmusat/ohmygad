@@ -8,6 +8,7 @@ import colorsys
 from enum import Enum
 from phue import Bridge
 from typing import Dict
+from pathlib import Path
 from bs4 import BeautifulSoup
 
 from selenium import webdriver
@@ -21,8 +22,8 @@ FORMAT = '%(asctime)s %(levelname)s %(message)s'
 logging.basicConfig(level=logging.INFO, format=FORMAT)
 locale.setlocale(locale.LC_ALL, 'nl_NL.UTF-8')
 
-ADDRESS = os.environ.get('ZIP_CODE')
-BRIDGE_IP_ADDRESS = "192.168.50.11"
+ADDRESS = os.environ.get("ZIP_CODE")
+BRIDGE_IP_ADDRESS = os.environ.get("BRIDGE_IP", "192.168.50.11")
 LIGHT_NAME = "Glass cabinet light"
 PURPLE_HUE = int(65535 * colorsys.rgb_to_hsv(0.5, 0, 0.5)[0])
 
@@ -89,18 +90,45 @@ def extract_title_and_date(a_tag: BeautifulSoup) -> (str, str):
 
 
 def sanitize_date(date_str: str) -> str:
-    # Another trick from GAD to make the date string unparseable
+    """
+    Another trick from GAD to make the date string unparseable, they write the date
+    in a non-standard Dutch way. This function should fix that.
+    :param date_str: Parsed date string from the website
+    :return: Sanitized date string that can be parsed by strptime
+    """
+
     if date_str.endswith("juli"):
         date_str = date_str.replace("juli", "jul")
     return date_str
 
 
 def get_bin_from_title(title: str) -> Bin:
+    """
+    Get the bin type from the title string.
+    :param title: String containing the bin type parsed from the website
+    :return: Bin object type
+    """
     bin_obj = None
     for bin_type in Bin:
         if bin_type.value in title.lower():
             bin_obj = bin_type
     return bin_obj
+
+
+def connect_to_bridge() -> Bridge:
+    """
+    Connect to the bridge. If the phue.conf file does not exist, the bridge needs to do a handshake.
+    :return: The bridge object
+    """
+    # Need to press the button on the bridge to connect for the first time
+    if not Path('phue.conf').exists():
+        logging.info("Press the button on the bridge to connect (30s)...")
+        time.sleep(30)
+        bridge = Bridge(BRIDGE_IP_ADDRESS)
+        bridge.connect()
+    else:
+        bridge = Bridge(BRIDGE_IP_ADDRESS)
+    return bridge
 
 
 def set_light(bin_type: Bin) -> None:
@@ -109,10 +137,7 @@ def set_light(bin_type: Bin) -> None:
     :param bin_type: The type of bin to be picked up so
     that the color of the light matches the color of the bin.
     """
-    bridge = Bridge(BRIDGE_IP_ADDRESS)
-    # Need to press the button on the bridge to connect for the first time
-    if not os.path.exists('phue.conf'):
-        bridge.connect()
+    bridge = connect_to_bridge()
     light_id = int(bridge.get_light_id_by_name(LIGHT_NAME))
     light = bridge.get_light(light_id)
     if not light['state']['reachable']:
@@ -138,6 +163,7 @@ def main():
 
 if __name__ == "__main__":
     logging.info("Starting ohMygGAD!")
+    assert ADDRESS, "Please set the BRIDGE_IP_ADDRESS environment variable"
     schedule.every().day.at("08:00").do(main)
     while True:
         schedule.run_pending()
