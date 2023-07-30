@@ -8,7 +8,6 @@ import colorsys
 from enum import Enum
 from phue import Bridge
 from typing import Dict
-from pathlib import Path
 from bs4 import BeautifulSoup
 
 from selenium import webdriver
@@ -23,7 +22,9 @@ logging.basicConfig(level=logging.INFO, format=FORMAT)
 locale.setlocale(locale.LC_ALL, 'nl_NL.UTF-8')
 
 ADDRESS = os.environ.get("ZIP_CODE")
-BRIDGE_IP_ADDRESS = os.environ.get("BRIDGE_IP", "192.168.50.11")
+assert ADDRESS, "Please set the ZIP_CODE environment variable"
+BRIDGE_IP_ADDRESS = os.environ.get("BRIDGE_IP")
+assert BRIDGE_IP_ADDRESS, "Please set the BRIDGE_IP environment variable"
 LIGHT_NAME = "Glass cabinet light"
 PURPLE_HUE = int(65535 * colorsys.rgb_to_hsv(0.5, 0, 0.5)[0])
 
@@ -163,7 +164,6 @@ def main():
 
 if __name__ == "__main__":
     logging.info("Starting ohMygGAD!")
-    assert ADDRESS, "Please set the BRIDGE_IP_ADDRESS environment variable"
     schedule.every().day.at("08:00").do(main)
     while True:
         schedule.run_pending()
