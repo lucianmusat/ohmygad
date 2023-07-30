@@ -121,7 +121,7 @@ def connect_to_bridge() -> Bridge:
     :return: The bridge object
     """
     # Need to press the button on the bridge to connect for the first time
-    if not Path('phue.conf').exists():
+    if not os.path.exists(os.path.expanduser('~/.python_hue')):
         logging.info("Press the button on the bridge to connect (30s)...")
         time.sleep(30)
         bridge = Bridge(BRIDGE_IP_ADDRESS)
