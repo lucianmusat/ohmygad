@@ -11,10 +11,10 @@ from typing import Dict
 from bs4 import BeautifulSoup
 
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support import expected_conditions
+from selenium.webdriver import FirefoxOptions
 
 
 FORMAT = '%(asctime)s %(levelname)s %(message)s'
@@ -53,29 +53,42 @@ def get_next_bins_headless() -> Dict[datetime.datetime, Bin]:
     next_bins = {}
     assert ADDRESS, "Please set the ZIP_CODE environment variable"
     url = f"https://inzamelkalender.gad.nl/adres/{ADDRESS}"
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.binary_location = "/usr/bin/google-chrome-stable"
 
-    with (webdriver.Chrome(options=chrome_options) as driver):
+    opts = FirefoxOptions()
+    opts.add_argument("--headless")
+    # Not using `with webdriver.Firefox()` because it does not work well on my Raspberry Pi
+    driver = webdriver.Firefox(options=opts)
+    try:
         driver.get(url)
-        wait = WebDriverWait(driver, timeout=10)
-        wait.until(EC.presence_of_element_located((By.CLASS_NAME, "list-group-flush")))
+        wait_to_load(driver)
         soup = BeautifulSoup(driver.page_source, features="html.parser")
-        div_element = soup.find('div', class_='list-group list-group-flush')
-        if div_element:
-            for a_tag in div_element.find_all('a', class_='list-group-item'):
-                title_str, date_str = extract_title_and_date(a_tag)
-                if not title_str or not date_str:
-                    continue
-                date_obj = datetime.datetime.strptime(date_str, '%a %d %b'
-                                                      ).replace(year=datetime.datetime.now().year)
-                bin_obj = get_bin_from_title(title_str)
-                if bin_obj:
-                    next_bins[date_obj] = bin_obj
+        next_dates_div = soup.find('div', class_='list-group list-group-flush')
+        if next_dates_div:
+            next_bins = get_next_dates(next_dates_div)
         else:
             logging.error(f"Could not find next dates in {url}")
+    finally:
+        driver.quit()
     return next_bins
+
+
+def get_next_dates(next_dates_div):
+    next_bins = {}
+    for a_tag in next_dates_div.find_all('a', class_='list-group-item'):
+        title_str, date_str = extract_title_and_date(a_tag)
+        if not title_str or not date_str:
+            continue
+        date_obj = datetime.datetime.strptime(date_str, '%a %d %b'
+                                              ).replace(year=datetime.datetime.now().year)
+        bin_obj = get_bin_from_title(title_str)
+        if bin_obj:
+            next_bins[date_obj] = bin_obj
+    return next_bins
+
+
+def wait_to_load(driver):
+    wait = WebDriverWait(driver, timeout=10)
+    wait.until(expected_conditions.presence_of_element_located((By.CLASS_NAME, "list-group-flush")))
 
 
 def extract_title_and_date(a_tag: BeautifulSoup) -> (str, str):
