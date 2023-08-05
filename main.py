@@ -111,10 +111,9 @@ def sanitize_date(date_str: str) -> str:
     :return: Sanitized date string that can be parsed by strptime
     """
 
-    if date_str.endswith("juli"):
-        date_str = date_str.replace("juli", "jul")
-    if date_str.endswith("sept"):
-        date_str = date_str.replace("sept", "sep")
+    # If they use non-standard month names like "Juli" or "Sept", just drop the last letter
+    if len(date_str) == 4:
+        date_str = date_str[:-1]
     if date_str.lower() == "vandaag":
         date_str = str(datetime.datetime.now().strftime('%a %d %b'))
     if date_str.lower() == "morgen":
