@@ -115,6 +115,9 @@ def sanitize_date(date_str: str) -> str:
         date_str = date_str.replace("juli", "jul")
     if date_str.lower() == "vandaag":
         date_str = str(datetime.datetime.now().strftime('%a %d %b'))
+    if date_str.lower() == "morgen":
+        date_str = str((datetime.datetime.now() + datetime.timedelta(days=1)
+                        ).strftime('%a %d %b'))
     return date_str
 
 
