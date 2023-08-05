@@ -112,7 +112,7 @@ def sanitize_date(date_str: str) -> str:
     """
 
     # If they use non-standard month names like "Juli" or "Sept", just drop the last letter
-    if len(date_str) == 4:
+    if len(date_str.split(" ")[-1]) == 4:
         date_str = date_str[:-1]
     if date_str.lower() == "vandaag":
         date_str = str(datetime.datetime.now().strftime('%a %d %b'))
