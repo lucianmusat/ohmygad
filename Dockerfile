@@ -14,6 +14,9 @@ RUN dpkg-reconfigure --frontend=noninteractive locales
 ENV LANG nl_NL.UTF-8
 ENV LC_ALL nl_NL.UTF-8
 
+# Save the username for the Hue bridge, so we don't have to pair every time
+RUN echo '{"192.168.50.11": {"username": "m8szYhUyVGJbwEDFcsIzOcueVCoioH6IN5aluepO"}}' > /root/.python_hue
+
 WORKDIR /code
 
 COPY ./requirements.txt /code/requirements.txt
