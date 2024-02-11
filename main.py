@@ -183,7 +183,7 @@ def main():
 
 if __name__ == "__main__":
     logging.info("Starting ohMygGAD!")
-    schedule.every().day.at("08:00", "Europe/Amsterdam").do(main)
+    schedule.every().day.at("20:00", "Europe/Amsterdam").do(main)
     while True:
         schedule.run_pending()
         time.sleep(60)
