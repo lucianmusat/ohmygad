@@ -78,8 +78,12 @@ def get_next_dates(next_dates_div):
         title_str, date_str = extract_title_and_date(a_tag)
         if not title_str or not date_str:
             continue
-        date_obj = datetime.datetime.strptime(date_str, '%a %d %b'
-                                              ).replace(year=datetime.datetime.now().year)
+        try:
+            date_obj = (datetime.datetime.strptime(date_str, '%a %d %b')
+                        .replace(year=datetime.datetime.now().year))
+        except ValueError:
+            logging.error(f"Could not parse date '{date_str}'")
+            continue
         bin_obj = get_bin_from_title(title_str)
         if bin_obj:
             next_bins[date_obj] = bin_obj
@@ -114,6 +118,7 @@ def sanitize_date(date_str: str) -> str:
     # If they use non-standard month names like "Juli" or "Sept", just drop the last letter
     if len(date_str.split(" ")[-1]) == 4:
         date_str = date_str[:-1]
+    date_str = date_str.replace("Maart", "mrt")
     if date_str.lower() == "vandaag":
         date_str = str(datetime.datetime.now().strftime('%a %d %b'))
     if date_str.lower() == "morgen":
