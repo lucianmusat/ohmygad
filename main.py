@@ -27,6 +27,7 @@ BRIDGE_IP_ADDRESS = os.environ.get("BRIDGE_IP")
 assert BRIDGE_IP_ADDRESS, "Please set the BRIDGE_IP environment variable"
 LIGHT_NAME = "Glass cabinet light"
 PURPLE_HUE = int(65535 * colorsys.rgb_to_hsv(0.5, 0, 0.5)[0])
+CHECK_TIME = "18:30"
 
 
 class Bin(Enum):
@@ -188,7 +189,7 @@ def main():
 
 if __name__ == "__main__":
     logging.info("Starting ohMygGAD!")
-    schedule.every().day.at("20:00", "Europe/Amsterdam").do(main)
+    schedule.every().day.at(CHECK_TIME, "Europe/Amsterdam").do(main)
     while True:
         schedule.run_pending()
         time.sleep(60)
