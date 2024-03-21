@@ -111,20 +111,19 @@ def extract_title_and_date(a_tag: BeautifulSoup) -> (str, str):
 def sanitize_date(date_str: str) -> str:
     """
     Another trick from GAD to make the date string unparseable, they write the date
-    in a non-standard Dutch way. This function should fix that.
+    in a non-standard Dutch way. This function should mitigate that.
     :param date_str: Parsed date string from the website
     :return: Sanitized date string that can be parsed by strptime
     """
-
-    # If they use non-standard month names like "Juli" or "Sept", just drop the last letter
-    if len(date_str.split(" ")[-1]) == 4:
-        date_str = date_str[:-1]
-    date_str = date_str.replace("Maart", "mrt")
-    if date_str.lower() == "vandaag":
-        date_str = str(datetime.datetime.now().strftime('%a %d %b'))
-    if date_str.lower() == "morgen":
-        date_str = str((datetime.datetime.now() + datetime.timedelta(days=1)
-                        ).strftime('%a %d %b'))
+    invalid_date_keywords = {
+        "vadaag": str(datetime.datetime.now().strftime('%a %d %b')),
+        "morgen": str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%a %d %b')),
+        "maart": "mrt",
+        "juli": "jul",
+        "sept": "sep",
+    }
+    if date_str.lower() in invalid_date_keywords:
+        date_str = invalid_date_keywords[date_str.lower()]
     return date_str
 
 
