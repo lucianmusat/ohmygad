@@ -1,4 +1,5 @@
 import os
+import re
 import time
 import locale
 import logging
@@ -116,15 +117,14 @@ def sanitize_date(date_str: str) -> str:
     :return: Sanitized date string that can be parsed by strptime
     """
     invalid_date_keywords = {
-        "vadaag": str(datetime.datetime.now().strftime('%a %d %b')),
-        "morgen": str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%a %d %b')),
+        "vadaag": datetime.datetime.now().strftime('%a %d %b'),
+        "morgen": (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%a %d %b'),
         "maart": "mrt",
         "juli": "jul",
         "sept": "sep",
     }
-    if date_str.lower() in invalid_date_keywords:
-        date_str = invalid_date_keywords[date_str.lower()]
-    return date_str
+    pattern = re.compile('|'.join(map(re.escape, invalid_date_keywords.keys())), re.IGNORECASE)
+    return pattern.sub(lambda x: invalid_date_keywords[x.group().lower()], date_str)
 
 
 def get_bin_from_title(title: str) -> Bin:
