@@ -15,7 +15,7 @@ ENV LANG nl_NL.UTF-8
 ENV LC_ALL nl_NL.UTF-8
 
 # Save the username for the Hue bridge, so we don't have to pair every time
-RUN echo '{"192.168.50.11": {"username": "m8szYhUyVGJbwEDFcsIzOcueVCoioH6IN5aluepO"}}' > /root/.python_hue
+RUN echo '{"192.168.1.11": {"username": "1Uxtrwx1xBu8Nv9V0o9zkxdKOa5g8QMgLGA6efDb"}}' > /root/.python_hue
 
 WORKDIR /code
 

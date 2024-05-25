@@ -26,7 +26,7 @@ ADDRESS = os.environ.get("ZIP_CODE")
 assert ADDRESS, "Please set the ZIP_CODE environment variable"
 BRIDGE_IP_ADDRESS = os.environ.get("BRIDGE_IP")
 assert BRIDGE_IP_ADDRESS, "Please set the BRIDGE_IP environment variable"
-LIGHT_NAME = "Glass cabinet light"
+LIGHT_NAME = "Glass Cabinet"
 PURPLE_HUE = int(65535 * colorsys.rgb_to_hsv(0.5, 0, 0.5)[0])
 CHECK_TIME = "18:30"
 
@@ -165,6 +165,9 @@ def set_light(bin_type: Bin) -> None:
     bridge = connect_to_bridge()
     light_id = int(bridge.get_light_id_by_name(LIGHT_NAME))
     light = bridge.get_light(light_id)
+    if 'error' in str(light):
+        logging.error(f"Light {light_id} is not found")
+        return
     if not light['state']['reachable']:
         logging.error(f"Light {light_id} is not reachable or responsive")
     else:
