@@ -61,6 +61,29 @@ def get_next_bins_headless() -> Dict[datetime.datetime, Bin]:
     # Not using `with webdriver.Firefox()` because it does not work well on my Raspberry Pi
     driver = webdriver.Firefox(options=opts)
     try:
+        # Another weird thing they did, they don't use the url argument anymore for the address,
+        # they use local storage every time. So I need to set the local storage data before
+        # navigating to the URL.
+        driver.get("https://inzamelkalender.gad.nl")
+        local_storage_data = {
+            "bagid": "0402200001536008",
+            "postcode": ADDRESS,
+            "huisnummer": 4,
+            "huisletter": "",
+            "toevoeging": "",
+            # "description": "",
+            # "straat": "",
+            # "woonplaats": "",
+            "woonplaatsId": 1036,
+            "gemeenteId": 402,
+            "latitude": 52.232241,
+            "longitude": 5.188504
+        }
+        local_storage_script = f"""
+                localStorage.setItem('zcalendarAdresWidget-data', JSON.stringify({local_storage_data}));
+                """
+        driver.execute_script(local_storage_script)
+
         driver.get(url)
         wait_to_load(driver)
         soup = BeautifulSoup(driver.page_source, features="html.parser")
@@ -117,7 +140,7 @@ def sanitize_date(date_str: str) -> str:
     :return: Sanitized date string that can be parsed by strptime
     """
     invalid_date_keywords = {
-        "vadaag": datetime.datetime.now().strftime('%a %d %b'),
+        "vandaag": datetime.datetime.now().strftime('%a %d %b'),
         "morgen": (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%a %d %b'),
         "maart": "mrt",
         "juli": "jul",
