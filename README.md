@@ -12,3 +12,5 @@ GAD does not seem to have an official API, but I query their website for the nex
 It is scheduled to do this check every day at 8:00 PM.
 
 **UPDATE:** They also stopped allowing queries on their website based on zip code. Not only that, but they implemented client side redirects to stop me from using http requests directly. So I switched to a different approach. I now use a headless browser to open their website and get the next collection dates. For now this works, we'll see what they're gonna do next.
+
+**UPDATE 2:** This one was a bit more tricky. They started to ignore the url arguments for the zip code and using the browser's local storage. It took me a while to figure that one out, as you would need to open the page with a new browser or incognito mode to see what is going on.
