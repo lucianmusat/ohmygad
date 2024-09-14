@@ -14,6 +14,7 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver import FirefoxOptions
 
@@ -92,6 +93,8 @@ def get_next_bins_headless() -> Dict[datetime.datetime, Bin]:
             next_bins = get_next_dates(next_dates_div)
         else:
             logging.error(f"Could not find next dates in {url}")
+    except WebDriverException as e:
+        logging.error("Could not load GAD website: {}", e)
     finally:
         driver.quit()
     return next_bins
