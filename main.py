@@ -18,6 +18,8 @@ from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver import FirefoxOptions
 
+from typing import Optional
+
 
 FORMAT = '%(asctime)s %(levelname)s %(message)s'
 logging.basicConfig(level=logging.INFO, format=FORMAT)
@@ -148,6 +150,7 @@ def sanitize_date(date_str: str) -> str:
         "maart": "mrt",
         "juli": "jul",
         "sept": "sep",
+        "febr": "feb",
     }
     pattern = re.compile('|'.join(map(re.escape, invalid_date_keywords.keys())), re.IGNORECASE)
     return pattern.sub(lambda x: invalid_date_keywords[x.group().lower()], date_str)
@@ -166,20 +169,24 @@ def get_bin_from_title(title: str) -> Bin:
     return bin_obj
 
 
-def connect_to_bridge() -> Bridge:
+def connect_to_bridge() -> Optional[Bridge]:
     """
     Connect to the bridge. If the phue.conf file does not exist, the bridge needs to do a handshake.
     :return: The bridge object
     """
     # Need to press the button on the bridge to connect for the first time
-    if not os.path.exists(os.path.expanduser('~/.python_hue')):
-        logging.info("Press the button on the bridge to connect (30s)...")
-        time.sleep(30)
-        bridge = Bridge(BRIDGE_IP_ADDRESS)
-        bridge.connect()
-    else:
-        bridge = Bridge(BRIDGE_IP_ADDRESS)
-    return bridge
+    try:
+        if not os.path.exists(os.path.expanduser('~/.python_hue')):
+            logging.info("Press the button on the bridge to connect (30s)...")
+            time.sleep(30)
+            bridge = Bridge(BRIDGE_IP_ADDRESS)
+            bridge.connect()
+        else:
+            bridge = Bridge(BRIDGE_IP_ADDRESS)
+        return bridge
+    except Exception as e:
+        logging.error(f"Could not connect to bridge: {e}")
+        return None
 
 
 def set_light(bin_type: Bin) -> None:
@@ -189,6 +196,8 @@ def set_light(bin_type: Bin) -> None:
     that the color of the light matches the color of the bin.
     """
     bridge = connect_to_bridge()
+    if not bridge:
+        return
     light_id = int(bridge.get_light_id_by_name(LIGHT_NAME))
     light = bridge.get_light(light_id)
     if 'error' in str(light):
