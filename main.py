@@ -109,7 +109,7 @@ def get_next_dates(next_dates_div):
         if not title_str or not date_str:
             continue
         try:
-            date_obj = (datetime.datetime.strptime(date_str, '%a %d %b')
+            date_obj = (datetime.datetime.strptime(date_str.lower(), '%a %d %B')
                         .replace(year=datetime.datetime.now().year))
         except ValueError:
             logging.error(f"Could not parse date '{date_str}'")
