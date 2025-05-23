@@ -29,7 +29,7 @@ ADDRESS = os.environ.get("ZIP_CODE")
 assert ADDRESS, "Please set the ZIP_CODE environment variable"
 BRIDGE_IP_ADDRESS = os.environ.get("BRIDGE_IP")
 assert BRIDGE_IP_ADDRESS, "Please set the BRIDGE_IP environment variable"
-LIGHT_NAME = "Glass Cabinet"
+LIGHT_NAME = "Bedroom Lightstrip"
 PURPLE_HUE = int(65535 * colorsys.rgb_to_hsv(0.5, 0, 0.5)[0])
 CHECK_TIME = "18:30"
 
