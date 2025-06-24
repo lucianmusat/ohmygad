@@ -48,6 +48,22 @@ color_map = {
     Bin.REST: PURPLE_HUE,  # no color gray for hue lights, so let's pick purple
 }
 
+DUTCH_MONTHS = {
+    'jan': 1, 'feb': 2, 'mrt': 3, 'apr': 4, 'mei': 5, 'jun': 6,
+    'jul': 7, 'aug': 8, 'sep': 9, 'okt': 10, 'nov': 11, 'dec': 12
+}
+
+def parse_dutch_date(date_str):
+    parts = date_str.strip().lower().split()
+    if len(parts) != 3:
+        raise ValueError(f"Unexpected date format: {date_str}")
+    _, day_str, month_str = parts
+    day = int(day_str)
+    month = DUTCH_MONTHS.get(month_str)
+    if not month:
+        raise ValueError(f"Unknown month abbreviation: {month_str}")
+    year = datetime.datetime.now().year
+    return datetime.datetime(year, month, day)
 
 def get_next_bins_headless() -> Dict[datetime.datetime, Bin]:
     """
@@ -109,8 +125,7 @@ def get_next_dates(next_dates_div):
         if not title_str or not date_str:
             continue
         try:
-            date_obj = (datetime.datetime.strptime(date_str.lower(), '%a %d %B')
-                        .replace(year=datetime.datetime.now().year))
+            date_obj = parse_dutch_date(date_str)
         except ValueError:
             logging.error(f"Could not parse date '{date_str}'")
             continue
