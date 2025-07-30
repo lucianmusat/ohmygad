@@ -53,6 +53,7 @@ DUTCH_MONTHS = {
     'jul': 7, 'aug': 8, 'sep': 9, 'okt': 10, 'nov': 11, 'dec': 12
 }
 
+
 def parse_dutch_date(date_str):
     parts = date_str.strip().lower().split()
     if len(parts) != 3:
@@ -64,6 +65,7 @@ def parse_dutch_date(date_str):
         raise ValueError(f"Unknown month abbreviation: {month_str}")
     year = datetime.datetime.now().year
     return datetime.datetime(year, month, day)
+
 
 def get_next_bins_headless() -> Dict[datetime.datetime, Bin]:
     """
@@ -112,7 +114,7 @@ def get_next_bins_headless() -> Dict[datetime.datetime, Bin]:
         else:
             logging.error(f"Could not find next dates in {url}")
     except WebDriverException as e:
-        logging.error("Could not load GAD website: {}", e)
+        logging.error(f"Could not load GAD website: {e}")
     finally:
         driver.quit()
     return next_bins
