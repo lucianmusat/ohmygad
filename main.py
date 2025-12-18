@@ -23,15 +23,18 @@ from typing import Optional
 
 FORMAT = '%(asctime)s %(levelname)s %(message)s'
 logging.basicConfig(level=logging.INFO, format=FORMAT)
-locale.setlocale(locale.LC_ALL, 'nl_NL.UTF-8')
+try:
+    locale.setlocale(locale.LC_ALL, 'nl_NL.UTF-8')
+except locale.Error:
+    logging.warning('locale error!')
 
 ADDRESS = os.environ.get("ZIP_CODE")
 assert ADDRESS, "Please set the ZIP_CODE environment variable"
 BRIDGE_IP_ADDRESS = os.environ.get("BRIDGE_IP")
 assert BRIDGE_IP_ADDRESS, "Please set the BRIDGE_IP environment variable"
-LIGHT_NAME = "Bedroom Lightstrip"
+LIGHT_NAMES = ["Livingroom spot 1", "Livingroom spot 2"]
 PURPLE_HUE = int(65535 * colorsys.rgb_to_hsv(0.5, 0, 0.5)[0])
-CHECK_TIME = "18:30"
+CHECK_TIME = "18:00"
 
 
 class Bin(Enum):
@@ -204,7 +207,7 @@ def connect_to_bridge() -> Optional[Bridge]:
         return None
 
 
-def set_light(bin_type: Bin) -> None:
+def set_light(bin_type: Bin):
     """
     Set the light to the color of the bin type.
     :param bin_type: The type of bin to be picked up so
@@ -213,18 +216,19 @@ def set_light(bin_type: Bin) -> None:
     bridge = connect_to_bridge()
     if not bridge:
         return
-    light_id = int(bridge.get_light_id_by_name(LIGHT_NAME))
-    light = bridge.get_light(light_id)
-    if 'error' in str(light):
-        logging.error(f"Light {light_id} is not found")
-        return
-    if not light['state']['reachable']:
-        logging.error(f"Light {light_id} is not reachable or responsive")
-    else:
-        bridge.set_light(light_id, 'on', True)
-        bridge.set_light(light_id, 'bri', 76)  # 30% of 255
-        bridge.set_light(light_id, 'hue', color_map[bin_type])
-        bridge.set_light(light_id, 'sat', 254)  # Maximum saturation
+    light_ids = [int(bridge.get_light_id_by_name(light_id)) for light_id in LIGHT_NAMES]
+    for light_id in light_ids:
+        light = bridge.get_light(light_id)
+        if 'error' in str(light):
+            logging.error(f"Light {light_id} is not found")
+            return
+        if not light['state']['reachable']:
+            logging.error(f"Light {light_id} is not reachable or responsive")
+        else:
+            bridge.set_light(light_id, 'on', True)
+            bridge.set_light(light_id, 'bri', 76)  # 30% of 255
+            bridge.set_light(light_id, 'hue', color_map[bin_type])
+            bridge.set_light(light_id, 'sat', 254)  # Maximum saturation
 
 
 def main():
