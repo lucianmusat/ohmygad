@@ -34,7 +34,7 @@ BRIDGE_IP_ADDRESS = os.environ.get("BRIDGE_IP")
 assert BRIDGE_IP_ADDRESS, "Please set the BRIDGE_IP environment variable"
 LIGHT_NAMES = ["Livingroom spot 1", "Livingroom spot 2"]
 PURPLE_HUE = int(65535 * colorsys.rgb_to_hsv(0.5, 0, 0.5)[0])
-CHECK_TIME = "18:00"
+CHECK_TIME = "16:30"
 
 
 class Bin(Enum):
