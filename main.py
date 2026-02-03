@@ -4,12 +4,12 @@ import time
 import locale
 import logging
 import datetime
-import schedule
 import colorsys
 from enum import Enum
 from phue import Bridge
 from typing import Dict
 from bs4 import BeautifulSoup
+import requests
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -31,7 +31,29 @@ except locale.Error:
 ADDRESS = os.environ.get("ZIP_CODE")
 assert ADDRESS, "Please set the ZIP_CODE environment variable"
 BRIDGE_IP_ADDRESS = os.environ.get("BRIDGE_IP")
-assert BRIDGE_IP_ADDRESS, "Please set the BRIDGE_IP environment variable"
+
+def discover_bridge_ip() -> str:
+    """Discover Hue Bridge IP using the official meethue discovery endpoint.
+    Returns the first bridge IP found.
+    """
+    r = requests.get("https://discovery.meethue.com/", timeout=10)
+    r.raise_for_status()
+    data = r.json()
+    if not data:
+        raise RuntimeError("No Hue bridges returned by discovery")
+    ip = data[0].get("internalipaddress")
+    if not ip:
+        raise RuntimeError("Discovery response missing internalipaddress")
+    return ip
+
+if not BRIDGE_IP_ADDRESS:
+    logging.info("BRIDGE_IP not set, attempting Hue bridge discovery...")
+    try:
+        BRIDGE_IP_ADDRESS = discover_bridge_ip()
+        logging.info(f"Discovered Hue bridge at {BRIDGE_IP_ADDRESS}")
+    except Exception as e:
+        raise AssertionError(f"Please set BRIDGE_IP or ensure discovery works: {e}")
+
 LIGHT_NAMES = ["Livingroom spot 1", "Livingroom spot 2"]
 PURPLE_HUE = int(65535 * colorsys.rgb_to_hsv(0.5, 0, 0.5)[0])
 CHECK_TIME = "16:30"
@@ -246,8 +268,5 @@ def main():
 
 
 if __name__ == "__main__":
-    logging.info("Starting ohMygGAD!")
-    schedule.every().day.at(CHECK_TIME, "Europe/Amsterdam").do(main)
-    while True:
-        schedule.run_pending()
-        time.sleep(60)
+    logging.info("Starting ohMygGAD! (run-once)")
+    main()
