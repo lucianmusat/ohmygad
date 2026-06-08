@@ -1,7 +1,8 @@
 import datetime
-from main import get_next_bins_headless
 
 def main():
+    from gad import get_next_bins_headless
+
     next_bins = get_next_bins_headless()
     print(f"Next bins: {next_bins}")
     tomorrow = datetime.datetime.now().date() + datetime.timedelta(days=1)

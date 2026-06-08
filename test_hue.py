@@ -1,7 +1,7 @@
-from main import set_light, Bin
-
-
 def main():
+    from bins import Bin
+    from hue import set_light
+
     set_light(Bin.REST)
 
 
