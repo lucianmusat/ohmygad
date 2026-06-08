@@ -1,9 +1,9 @@
 import datetime
 
 def main():
-    from gad import get_next_bins_headless
+    from gad import get_next_bins
 
-    next_bins = get_next_bins_headless()
+    next_bins = get_next_bins()
     print(f"Next bins: {next_bins}")
     tomorrow = datetime.datetime.now().date() + datetime.timedelta(days=1)
     if not any(bin_type.date() == tomorrow for bin_type in next_bins):

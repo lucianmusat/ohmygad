@@ -1,15 +1,9 @@
-# Optimized image (smaller base, fewer deps).
-# Biggest dependency remains Firefox.
 FROM python:3.12-slim-bookworm
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-# Runtime deps only; no recommended extras; clean apt lists.
-# Note: we do NOT install geckodriver here; Selenium 4 includes Selenium Manager
-# which can fetch a compatible driver at runtime.
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
-      firefox-esr \
       locales \
       ca-certificates \
       curl \

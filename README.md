@@ -17,9 +17,10 @@ It is scheduled externally (Airflow) and runs as a short-lived Kubernetes Job.
 
 **UPDATE 3:** They keep changing the way they display the date, it seems to be in non-standard formats, so I have to make a parser function.
 
+**UPDATE 4:** GAD's JSON endpoints are usable again, so the script no longer needs Selenium, Firefox, or HTML parsing. It now reads the pickup API directly and matches collection stream IDs first.
+
 ## Scheduling (Kubernetes + Airflow)
 
 This project used to run continuously and schedule itself using the Python `schedule` library.
 
 **Now it runs once and exits.** Scheduling is handled by Airflow, which triggers a short-lived Kubernetes **Job**.
-

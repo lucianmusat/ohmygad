@@ -5,8 +5,6 @@ GAD_BASE_URL = "https://inzamelkalender.gad.nl"
 ZIP_CODE = os.environ.get("ZIP_CODE")
 GAD_BAG_ID = os.environ.get("GAD_BAG_ID")
 HOUSE_NUMBER = os.environ.get("HOUSE_NUMBER")
-HOUSE_LETTER = os.environ.get("HOUSE_LETTER", "")
-HOUSE_SUFFIX = os.environ.get("HOUSE_SUFFIX", "")
 
 BRIDGE_IP_ADDRESS = os.environ.get("BRIDGE_IP")
 LIGHT_NAMES = ["Livingroom spot 1", "Livingroom spot 2"]
@@ -27,13 +25,3 @@ def require_gad_address():
         require_env("GAD_BAG_ID", GAD_BAG_ID),
         require_env("HOUSE_NUMBER", HOUSE_NUMBER),
     )
-
-
-def optional_int_env(name: str):
-    value = os.environ.get(name)
-    return int(value) if value else None
-
-
-def optional_float_env(name: str):
-    value = os.environ.get(name)
-    return float(value) if value else None

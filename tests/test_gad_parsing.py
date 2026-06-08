@@ -25,49 +25,6 @@ except ImportError:
     install_stub_module("phue", phue)
 
 
-try:
-    import bs4  # noqa: F401
-except ImportError:
-    bs4 = types.ModuleType("bs4")
-    bs4.BeautifulSoup = object
-    install_stub_module("bs4", bs4)
-
-
-try:
-    import selenium  # noqa: F401
-except ImportError:
-    selenium = types.ModuleType("selenium")
-    webdriver = types.ModuleType("selenium.webdriver")
-    webdriver.Firefox = object
-    webdriver.FirefoxOptions = type(
-        "FirefoxOptions", (), {"add_argument": lambda self, arg: None}
-    )
-    common = types.ModuleType("selenium.webdriver.common")
-    by = types.ModuleType("selenium.webdriver.common.by")
-    by.By = type("By", (), {"CLASS_NAME": "class name"})
-    support = types.ModuleType("selenium.webdriver.support")
-    ui = types.ModuleType("selenium.webdriver.support.ui")
-    ui.WebDriverWait = object
-    selenium_common = types.ModuleType("selenium.common")
-    exceptions = types.ModuleType("selenium.common.exceptions")
-    exceptions.WebDriverException = Exception
-    expected = types.ModuleType("selenium.webdriver.support.expected_conditions")
-    expected.presence_of_element_located = lambda locator: locator
-
-    for module_name, module in {
-        "selenium": selenium,
-        "selenium.webdriver": webdriver,
-        "selenium.webdriver.common": common,
-        "selenium.webdriver.common.by": by,
-        "selenium.webdriver.support": support,
-        "selenium.webdriver.support.ui": ui,
-        "selenium.common": selenium_common,
-        "selenium.common.exceptions": exceptions,
-        "selenium.webdriver.support.expected_conditions": expected,
-    }.items():
-        install_stub_module(module_name, module)
-
-
 import bins
 import gad
 import main
@@ -159,17 +116,11 @@ class GadParsingTests(unittest.TestCase):
         self.assertIn('"REST_PMD": 27', ollama_calls[0]["json"]["prompt"])
         self.assertIn("Nieuwe onbekende afvalstroom", ollama_calls[0]["json"]["prompt"])
 
-    def test_get_next_bins_falls_back_to_headless_when_api_returns_nothing(self):
-        fallback_bins = {PICKUP_DATE: bins.Bin.PAPER}
-
-        with patch.object(gad, "get_next_bins_api", lambda: {}), patch.object(
-            gad,
-            "get_next_bins_headless",
-            lambda: fallback_bins,
-        ):
+    def test_get_next_bins_returns_api_result_directly(self):
+        with patch.object(gad, "get_next_bins_api", lambda: {}):
             next_bins = gad.get_next_bins()
 
-        self.assert_tomorrow_bin(next_bins, bins.Bin.PAPER)
+        self.assertEqual(next_bins, {})
 
 
 if __name__ == "__main__":
