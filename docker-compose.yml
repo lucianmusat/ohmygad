@@ -2,5 +2,13 @@ services:
   ohmygad:
     environment:
       - ZIP_CODE=${ZIP_CODE}
+      - GAD_BAG_ID=${GAD_BAG_ID}
+      - HOUSE_NUMBER=${HOUSE_NUMBER}
+      - HOUSE_LETTER=${HOUSE_LETTER}
+      - HOUSE_SUFFIX=${HOUSE_SUFFIX}
+      - GAD_WOONPLAATS_ID=${GAD_WOONPLAATS_ID}
+      - GAD_GEMEENTE_ID=${GAD_GEMEENTE_ID}
+      - GAD_LATITUDE=${GAD_LATITUDE}
+      - GAD_LONGITUDE=${GAD_LONGITUDE}
       - BRIDGE_IP=${BRIDGE_IP}
     build: .

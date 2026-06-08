@@ -1,10 +1,5 @@
-from main import Bin, get_next_bins_headless
 import datetime
-import pytest
-
-# TODO: Add unittests
-# This one I use to test that the webdriver works correctly inside the docker container
-
+from main import get_next_bins_headless
 
 def main():
     next_bins = get_next_bins_headless()
