@@ -113,6 +113,12 @@ class GadParsingTests(unittest.TestCase):
         self.assert_tomorrow_bin(next_bins, bins.Bin.REST_PMD)
         self.assertEqual(len(ollama_calls), 1)
         self.assertTrue(ollama_calls[0]["url"].endswith("/api/generate"))
+        request = ollama_calls[0]["json"]
+        self.assertEqual(request["model"], "qwen3.5:9b-q4_K_M")
+        self.assertEqual(request["options"], {"num_ctx": 32768})
+        self.assertIs(request["shift"], False)
+        self.assertIs(request["think"], False)
+        self.assertEqual(request["keep_alive"], "-1m")
         self.assertIn('"REST_PMD": 27', ollama_calls[0]["json"]["prompt"])
         self.assertIn("Nieuwe onbekende afvalstroom", ollama_calls[0]["json"]["prompt"])
 

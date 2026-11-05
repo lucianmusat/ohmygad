@@ -6,7 +6,7 @@ from typing import Optional
 
 import requests
 
-from config import LLM_MODEL, OLLAMA_TIMEOUT_SECONDS, OLLAMA_URL
+from config import LLM_MODEL, OLLAMA_KEEP_ALIVE, OLLAMA_NUM_CTX, OLLAMA_TIMEOUT_SECONDS, OLLAMA_URL
 
 
 class Bin(IntEnum):
@@ -93,6 +93,11 @@ Return only JSON in this exact shape:
                 "prompt": prompt,
                 "stream": False,
                 "format": "json",
+                "think": False,
+                # Same load options as the other clients of the shared model.
+                "options": {"num_ctx": OLLAMA_NUM_CTX},
+                "shift": False,
+                "keep_alive": OLLAMA_KEEP_ALIVE,
             },
             timeout=OLLAMA_TIMEOUT_SECONDS,
         )
